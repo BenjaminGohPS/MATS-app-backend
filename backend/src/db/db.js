@@ -1,4 +1,4 @@
-require("dotenv").config({ path: './.env' });
+require("dotenv").config();
 const { Sequelize } = require("sequelize");
 
 const sequelize = new Sequelize({
@@ -13,7 +13,9 @@ const sequelize = new Sequelize({
 async function testConnection() {
   try {
     await sequelize.authenticate();
-    console.log("Connection to the database has been established successfully!");
+    console.log(
+      "Connection to the database has been established successfully!"
+    );
   } catch (error) {
     console.error("Unable to connect to the database:", error);
   }
