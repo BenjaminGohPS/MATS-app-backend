@@ -1,17 +1,22 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Auth = require("../models/Auth");
-const Roles = require("../models/Roles");
+const { v4: uuidv4 } = require("uuid");
 
 const getAllUsers = async (req, res) => {
   try {
-    if (req.user.role !== "ADMIN") {
-      return res.status(400).json({ status: "error", msg: "not authorised" });
-    }
-
     const users = await Auth.findAll();
 
-    res.json(users);
+    const outputArray = [];
+    for (const user of users) {
+      outputArray.push({
+        id: user.id,
+        email: user.email,
+        role_id: user.role_id,
+      });
+    }
+
+    res.json(outputArray);
   } catch (error) {
     console.error(error.message);
     res.status(400).json({ status: "error", msg: "error getting users" });
@@ -20,17 +25,17 @@ const getAllUsers = async (req, res) => {
 
 const register = async (req, res) => {
   try {
-    const auth = await Auth.findOne({ email: req.body.email });
+    const auth = await Auth.findOne({ where: { email: req.body.email } });
+
     if (auth) {
       return res.status(400).json({ status: "error", msg: "duplicate email" });
     }
 
-    const hash = await bcrypt.hash(req.body.password, 10);
+    const hash = await bcrypt.hash(req.body.password, 12);
 
     await Auth.create({
       email: req.body.email,
       password: hash,
-      role: req.body.role || "USER",
     });
 
     res.json({ status: "ok", msg: "user created" });
@@ -42,13 +47,13 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const auth = await Auth.findOne({ email: req.body.email });
+    const auth = await Auth.findOne({ where: { email: req.body.email } });
 
     if (!auth) {
       return res.status(400).json({ status: "error", msg: "not authorised" });
     }
 
-    const result = await bcrypt.compare(req.body.password, auth.hash);
+    const result = await bcrypt.compare(req.body.password, auth.password);
     if (!result) {
       console.error("email or password error");
       return res
@@ -56,16 +61,42 @@ const login = async (req, res) => {
         .json({ status: "error", msg: "email or password error" });
     }
 
-    const token = jwt.sign(
-      { userId: auth.id, role: auth.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "15d" }
-    );
+    const claims = {
+      email: auth.email,
+      role: auth.role,
+    };
 
-    res.json({ token });
+    const access = jwt.sign(claims, process.env.ACCESS_SECRET, {
+      expiresIn: "15h",
+      jwtid: uuidv4(),
+    });
+
+    const refresh = jwt.sign(claims, process.env.REFRESH_SECRET, {
+      expiresIn: "15d",
+      jwtid: uuidv4(),
+    });
+
+    res.json({ access, refresh });
   } catch (error) {
     console.error(error.message);
     res.status(400).json({ status: "error", msg: "login failed" });
+  }
+};
+
+// if not used, to delete
+const refresh = async (req, res) => {
+  try {
+    const decoded = jwt.verify(req.body.refresh, process.env.REFRESH_SECRET);
+    const claims = { email: decoded.email, role: decoded.role };
+
+    const access = jwt.sign(claims, process.env.ACCESS_SECRET, {
+      expiresIn: "15d",
+      jwtid: uuidv4(),
+    });
+    res.json({ access });
+  } catch (error) {
+    console.error(error.message);
+    res.status(400).json({ status: "error", msg: "refresh error" });
   }
 };
 

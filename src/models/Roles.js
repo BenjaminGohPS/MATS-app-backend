@@ -1,7 +1,12 @@
-const { Sequelize, DataTypes } = require("sequelize");
-const sequelize = require("../db/db");
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../db/db");
 
 const Roles = sequelize.define("Role", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   role_name: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -15,7 +20,4 @@ const Roles = sequelize.define("Role", {
   },
 });
 
-// syncRoleTable();
-sequelize.sync();
-
-module.exports = Role;
+module.exports = Roles;

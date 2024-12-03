@@ -1,8 +1,13 @@
-const { Sequelize, DataTypes } = require("sequelize");
-const sequelize = require("../db/db");
-const Role = require("./Roles");
+const { DataTypes, UUID, UUIDV4 } = require("sequelize");
+const { sequelize } = require("../db/db");
+const Roles = require("./Roles");
 
-const Auth = sequelize.define("Auth", {
+const Auth = sequelize.define("users", {
+  id: {
+    type: UUID,
+    defaultValue: UUIDV4,
+    primaryKey: true,
+  },
   email: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -27,19 +32,18 @@ const Auth = sequelize.define("Auth", {
       },
     },
   },
-  role: {
-    type: DataTypes.STRING,
+  role_id: {
+    type: DataTypes.INTEGER,
     allowNull: false,
-    defaultValue: "USER",
+    references: {
+      model: Roles,
+      key: "id",
+    },
+    defaultValue: 2, // Assuming 'USER' has ID = 2, adjust if necessary
   },
 });
 
-Auth.belongsTo(Role, {
-  foreignKey: {
-    allowNull: false,
-  },
-});
-
-Role.hasMany(Auth, { foreignKey: { allowNull: false } });
+// Associations
+Auth.belongsTo(Roles, { foreignKey: "role_id" }); // Associate Auth with Role
 
 module.exports = Auth;
