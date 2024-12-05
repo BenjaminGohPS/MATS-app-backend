@@ -5,9 +5,11 @@ const Auth = require("../models/Auth");
 const getAllAppointments = async (req, res) => {
   try {
     const userRole = req.role_id;
+    const userIdFromQuery = req.query.user_id;
 
     if (userRole === 1) {
       const appointments = await Appointments.findAll({
+        where: userIdFromQuery ? { user_id: userIdFromQuery } : {},
         include: [
           {
             model: Auth,
