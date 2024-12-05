@@ -5,7 +5,7 @@ const { getAllUsers, register, login } = require("../controllers/auth");
 
 const { authAdmin } = require("../middleware/auth");
 
-router.get("/users", authAdmin, getAllUsers);
+router.get("/users", authAdmin, getAllUsers); // authAdmin
 router.put("/register", register);
 router.post("/login", login);
 

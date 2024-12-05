@@ -7,6 +7,8 @@ const bcrypt = require("bcrypt");
 const { connectDB } = require("./src/db/db");
 
 const auth = require("./src/routers/auth");
+const appts = require("./src/routers/appointments");
+const meds = require("./src/routers/medicines");
 
 connectDB();
 
@@ -18,11 +20,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use("/MATS", auth);
+app.use("/MATS", appts);
+app.use("/MATS", meds);
 
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.originalUrl}`); // Logs the request method and URL
-  next(); // Passes the request to the next middleware
-});
+// app.use((req, res, next) => {
+//   console.log(`${req.method} ${req.originalUrl}`); // Logs the request method and URL
+//   next(); // Passes the request to the next middleware
+// });
 
 // Test Route
 app.get("/test", (req, res) => {
