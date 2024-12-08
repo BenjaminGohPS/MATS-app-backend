@@ -2,6 +2,7 @@ const { Op } = require("sequelize");
 const Medicines = require("../models/Medicines");
 const MedicineUsers = require("../models/MedicinesUsers");
 const Auth = require("../models/Auth");
+const { sequelize } = require("../db/db");
 
 //admin only
 const getAllMedicines = async (req, res) => {
@@ -252,9 +253,13 @@ const updateMedicine = async (req, res) => {
     end_date,
   } = req.body;
 
+  // this is to start a transaction
+  const t = await sequelize.transaction();
+
   try {
-    const medicine = await MedicineUsers.findOne({
-      where: { medicine_id: medicineId, user_id: userId },
+    const medicine = await Medicines.findOne({
+      where: { medicine_id: medicineId },
+      transaction: t,
     });
 
     if (!medicine) {
@@ -263,7 +268,18 @@ const updateMedicine = async (req, res) => {
         .json({ status: "error", msg: "no medicine found" });
     }
 
-    if (userRole !== 1 && medicine.user_id !== userId) {
+    const medicineUser = await MedicineUsers.findOne({
+      where: { medicine_id: medicineId, user_id: userId },
+      transaction: t,
+    });
+
+    if (!medicineUser) {
+      return res
+        .status(404)
+        .json({ status: "error", msg: "no medicine assignment found" });
+    }
+
+    if (userRole !== 1 && medicineUser.user_id !== userId) {
       return res.status(400).json({
         status: "error",
         msg: "Not authorized to update this medicine",
@@ -273,15 +289,20 @@ const updateMedicine = async (req, res) => {
     // fields to be updated
     medicine.medicine_name = medicine_name || medicine.medicine_name;
     medicine.medicine_expiry = medicine_expiry || medicine.medicine_expiry;
-    medicine.quantity = quantity || medicine.quantity;
-    medicine.daily_dosage = daily_dosage || medicine.daily_dosage;
-    medicine.start_date = start_date || medicine.start_date;
-    medicine.end_date = end_date || medicine.end_date;
+    medicineUser.quantity = quantity || medicine.quantity;
+    medicineUser.daily_dosage = daily_dosage || medicine.daily_dosage;
+    medicineUser.start_date = start_date || medicine.start_date;
+    medicineUser.end_date = end_date || medicine.end_date;
 
-    await medicine.save();
+    await medicine.save({ transaction: t });
+    await medicineUser.save({ transaction: t });
+
+    // all or nothing. both above must be successfully saved, else nothing.
+    await t.commit();
 
     res.json({ status: "ok", msg: "Medicine updated successfully" });
   } catch (error) {
+    await t.rollback(); // Rollback the transaction if any error occurs
     console.error(error.message);
     res.status(400).json({ status: "error", msg: "Error updating medicine" });
   }
