@@ -112,7 +112,7 @@ const addAppointment = async (req, res) => {
 
       return res.json({
         status: "ok",
-        msg: "Appointment added to USER successfully",
+        msg: `Appointment added to USER: ${user_id} successfully`,
         data: newAppointment,
       });
     }
@@ -207,7 +207,7 @@ const updateAppointment = async (req, res) => {
     appointment.type = type || appointment.type;
     appointment.doctor = doctor || appointment.doctor;
 
-    if (userId === 1) {
+    if (userRole === 1) {
       appointment.user_id = user_id || appointment.user_id;
     }
 

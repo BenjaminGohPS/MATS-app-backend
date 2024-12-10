@@ -186,11 +186,12 @@ const deleteMedicine = async (req, res) => {
   const userId = req.userId;
   const userRole = req.role_id;
 
+  // user_id: req.body.user_id,
   try {
     // ADMIN
     if (userRole === 1) {
       const existingAssignment = await MedicineUsers.findOne({
-        where: { user_id: req.body.user_id, medicine_id: req.body.medicine_id },
+        where: { medicine_id: req.body.medicine_id },
       });
 
       if (!existingAssignment) {
@@ -207,6 +208,9 @@ const deleteMedicine = async (req, res) => {
       }
 
       await existingAssignment.destroy();
+      await Medicines.destroy({
+        where: { medicine_id: req.body.medicine_id },
+      });
 
       return res.json({
         status: "ok",
@@ -251,6 +255,7 @@ const updateMedicine = async (req, res) => {
     daily_dosage,
     start_date,
     end_date,
+    user_id,
   } = req.body;
 
   // this is to start a transaction
@@ -293,6 +298,10 @@ const updateMedicine = async (req, res) => {
     medicineUser.daily_dosage = daily_dosage || medicine.daily_dosage;
     medicineUser.start_date = start_date || medicine.start_date;
     medicineUser.end_date = end_date || medicine.end_date;
+
+    if (userRole === 1) {
+      medicineUser.user_id = user_id || medicine.user_id;
+    }
 
     await medicine.save({ transaction: t });
     await medicineUser.save({ transaction: t });

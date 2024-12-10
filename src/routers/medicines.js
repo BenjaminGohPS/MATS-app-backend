@@ -7,7 +7,7 @@ const {
   deleteMedicine,
   updateMedicine,
 } = require("../controllers/medicines");
-const { auth, authAdmin } = require("../middleware/auth");
+const { auth } = require("../middleware/auth");
 
 // medicines
 router.get("/meds", auth, getAllMedicines);
