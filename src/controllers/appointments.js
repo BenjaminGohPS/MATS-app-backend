@@ -30,6 +30,7 @@ const getAllAppointments = async (req, res) => {
           attributes: ["id", "email"],
         },
       ],
+      // order: [["appointment_date", "ASC"]],
     });
 
     res.json(appointments);
