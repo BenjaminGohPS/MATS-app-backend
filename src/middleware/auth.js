@@ -33,8 +33,6 @@ const authAdmin = (req, res, next) => {
       console.log("Token in header:", token);
       const decoded = jwt.verify(token, process.env.ACCESS_SECRET);
 
-      console.log({ decoded });
-
       if (decoded.role_id === 1) {
         req.decoded = decoded;
         req.userId = decoded.userId;
@@ -53,8 +51,3 @@ const authAdmin = (req, res, next) => {
 };
 
 module.exports = { auth, authAdmin };
-
-/* WORKINGS
-
-NEED TO DO CLEAN UP WHEN READY
-*/

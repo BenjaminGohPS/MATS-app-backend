@@ -23,8 +23,46 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+const updateUserRole = async (req, res) => {
+  try {
+    const { userId, newRoleId } = req.body;
+
+    const user = await Auth.findOne({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({ status: "error", msg: "User not found." });
+    }
+
+    if (![1, 2].includes(newRoleId)) {
+      return res.status(400).json({ status: "error", msg: "Invalid role ID" });
+    }
+
+    if (userId === req.userId) {
+      return res
+        .status(400)
+        .json({ status: "error", msg: "You cannot update your own role" });
+    }
+
+    user.role_id = newRoleId;
+    await user.save();
+
+    res.json({ status: "success", msg: "User role updated successfully" });
+  } catch (error) {
+    console.error(error.message);
+    res
+      .status(400)
+      .json({ status: "error", msg: "Failed to update user role" });
+  }
+};
+
 const register = async (req, res) => {
   try {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(req.body.email)) {
+      return res
+        .status(400)
+        .json({ status: "error", msg: "invalid email format" });
+    }
+
     const auth = await Auth.findOne({ where: { email: req.body.email } });
 
     if (auth) {
@@ -47,10 +85,19 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(req.body.email)) {
+      return res
+        .status(400)
+        .json({ status: "error", msg: "invalid email format" });
+    }
+
     const auth = await Auth.findOne({ where: { email: req.body.email } });
 
     if (!auth) {
-      return res.status(400).json({ status: "error", msg: "not authorised" });
+      return res
+        .status(404)
+        .json({ status: "error", msg: "Email not registered" });
     }
 
     const result = await bcrypt.compare(req.body.password, auth.password);
@@ -84,21 +131,4 @@ const login = async (req, res) => {
   }
 };
 
-// if not used, to delete
-const refresh = async (req, res) => {
-  try {
-    const decoded = jwt.verify(req.body.refresh, process.env.REFRESH_SECRET);
-    const claims = { email: decoded.email, role: decoded.role };
-
-    const access = jwt.sign(claims, process.env.ACCESS_SECRET, {
-      expiresIn: "15d",
-      jwtid: uuidv4(),
-    });
-    res.json({ access });
-  } catch (error) {
-    console.error(error.message);
-    res.status(400).json({ status: "error", msg: "refresh error" });
-  }
-};
-
-module.exports = { getAllUsers, register, login };
+module.exports = { getAllUsers, updateUserRole, register, login };

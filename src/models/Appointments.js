@@ -40,17 +40,3 @@ const Appointments = sequelize.define("appointments", {
 Appointments.belongsTo(Auth, { foreignKey: "user_id" });
 
 module.exports = Appointments;
-
-/*
-WORKINGS
-CREATE TABLE appointments (
-	appointment_id SERIAL PRIMARY KEY,
-	appointment_date DATE NOT NULL, // for now varchar
-	appointment_time TIME NOT NULL, // for now varchar
-	location VARCHAR(255),
-	type VARCHAR(255),
-	doctor VARCHAR(255),
-	user_id UUID REFERENCES Users(id)
-);
-
-*/
