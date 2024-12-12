@@ -263,32 +263,16 @@ const updateMedicine = async (req, res) => {
 
   // this is to start a transaction
   const t = await sequelize.transaction();
-  console.log("Medicine ID:", medicineId);
-  console.log("User ID:", userId);
 
   try {
-    // const medicine = await Medicines.findOne({
-    //   where: { medicine_id: medicineId },
-    //   transaction: t,
-    // });
-
     const medicine = await Medicines.findOne({
       where: { medicine_id: medicineId },
     });
-    // console.log("medicine.user_id:", medicine.medicines_users[0].user_id);
     if (!medicine) {
       return res
         .status(404)
         .json({ status: "error", msg: "no medicine found" });
     }
-
-    // const medicineUser = await MedicineUsers.findByPk(medicineId);
-    // console.log("this is medicineUser.user_id:", medicineUser.user_id);
-    // if (!medicineUser) {
-    //   return res
-    //     .status(404)
-    //     .json({ status: "error", msg: "no medicine found" });
-    // }
 
     const effectiveUserId = userRole === 1 ? user_id : userId;
 
@@ -320,9 +304,6 @@ const updateMedicine = async (req, res) => {
         });
       }
     }
-    console.log("CHECKING for medicineUser.user_id", medicineUser.user_id);
-    console.log("CHECKING for userId", userId);
-    console.log("CHECKING for effectiveUserId", effectiveUserId);
 
     if (medicineUser.user_id !== userId && userRole !== 1) {
       return res.status(400).json({
@@ -330,53 +311,6 @@ const updateMedicine = async (req, res) => {
         msg: "Not authorized to update this medicine",
       });
     }
-
-    // const effectiveUserId = userRole === 1 ? user_id : userId;
-
-    // let effectiveUserId;
-
-    // // For admin, use the user_id passed in the body. For users, use their own userId.
-    // if (userRole === 1) {
-    //   effectiveUserId = user_id; // Admin can assign to any user
-    // } else {
-    //   effectiveUserId = userId; // Regular user can only update their own record
-    // }
-
-    // const medicineUser = await MedicineUsers.findOne({
-    //   where: { medicine_id: medicineId, user_id: effectiveUserId },
-    //   transaction: t,
-    // });
-
-    // if (!medicineUser) {
-    //   if (userRole === 1) {
-    //     await MedicineUsers.create(
-    //       {
-    //         user_id: user_id,
-    //         medicine_id: medicineId,
-    //         quantity,
-    //         daily_dosage,
-    //         start_date,
-    //         end_date,
-    //       },
-    //       { transaction: t }
-    //     );
-
-    //     await t.commit();
-    //     return res.json({ status: "ok", msg: "Medicine update successfully!" });
-    //   } else {
-    //     return res.status(404).json({
-    //       status: "error",
-    //       msg: "no medicine assignment found for this user.",
-    //     });
-    //   }
-    // }
-
-    // if (userRole !== 1 && medicineUser.user_id !== userId) {
-    //   return res.status(400).json({
-    //     status: "error",
-    //     msg: "Not authorized to update this medicine",
-    //   });
-    // }
 
     // fields to be updated
     medicine.medicine_name = medicine_name || medicine.medicine_name;
@@ -411,139 +345,3 @@ module.exports = {
   deleteMedicine,
   updateMedicine,
 };
-
-/* Workings
-
-// below is working codes for admin. but cannot assign
-// user now have problem
-
-const updateMedicine = async (req, res) => {
-  const userId = req.userId;
-  const userRole = req.role_id;
-  const medicineId = req.params.id;
-  const {
-    medicine_name,
-    medicine_expiry,
-    quantity,
-    daily_dosage,
-    start_date,
-    end_date,
-    user_id,
-  } = req.body;
-
-  // this is to start a transaction
-  const t = await sequelize.transaction();
-  console.log("Medicine ID:", medicineId);
-  console.log("User ID:", userId);
-
-  try {
-    // const medicine = await Medicines.findOne({
-    //   where: { medicine_id: medicineId },
-    //   transaction: t,
-    // });
-
-    const medicine = await Medicines.findByPk(medicineId);
-
-    if (!medicine) {
-      return res
-        .status(404)
-        .json({ status: "error", msg: "no medicine found" });
-    }
-
-    if (medicine.user_id !== userId && userRole !== 1) {
-      return res.status(400).json({
-        status: "error",
-        msg: "Not authorized to update this medicine",
-      });
-    }
-
-    const medicineUser = await MedicineUsers.findByPk(medicineId);
-
-    if (!medicineUser) {
-      return res
-        .status(404)
-        .json({ status: "error", msg: "no medicine found" });
-    }
-
-    if (medicineUser.user_id !== userId && userRole !== 1) {
-      console.log("this is medicineUser.user_id:", medicineUser.user_id);
-      return res.status(400).json({
-        status: "error",
-        msg: "Not authorized to update this medicine",
-      });
-    }
-
-    // const effectiveUserId = userRole === 1 ? user_id : userId;
-
-    // let effectiveUserId;
-
-    // // For admin, use the user_id passed in the body. For users, use their own userId.
-    // if (userRole === 1) {
-    //   effectiveUserId = user_id; // Admin can assign to any user
-    // } else {
-    //   effectiveUserId = userId; // Regular user can only update their own record
-    // }
-
-    // const medicineUser = await MedicineUsers.findOne({
-    //   where: { medicine_id: medicineId, user_id: effectiveUserId },
-    //   transaction: t,
-    // });
-
-    // if (!medicineUser) {
-    //   if (userRole === 1) {
-    //     await MedicineUsers.create(
-    //       {
-    //         user_id: user_id,
-    //         medicine_id: medicineId,
-    //         quantity,
-    //         daily_dosage,
-    //         start_date,
-    //         end_date,
-    //       },
-    //       { transaction: t }
-    //     );
-
-    //     await t.commit();
-    //     return res.json({ status: "ok", msg: "Medicine update successfully!" });
-    //   } else {
-    //     return res.status(404).json({
-    //       status: "error",
-    //       msg: "no medicine assignment found for this user.",
-    //     });
-    //   }
-    // }
-
-    // if (userRole !== 1 && medicineUser.user_id !== userId) {
-    //   return res.status(400).json({
-    //     status: "error",
-    //     msg: "Not authorized to update this medicine",
-    //   });
-    // }
-
-    // fields to be updated
-    medicine.medicine_name = medicine_name || medicine.medicine_name;
-    medicine.medicine_expiry = medicine_expiry || medicine.medicine_expiry;
-    medicineUser.quantity = quantity || medicine.quantity;
-    medicineUser.daily_dosage = daily_dosage || medicine.daily_dosage;
-    medicineUser.start_date = start_date || medicine.start_date;
-    medicineUser.end_date = end_date || medicine.end_date;
-
-    if (userRole === 1) {
-      medicineUser.user_id = user_id || medicine.user_id;
-    }
-
-    await medicine.save({ transaction: t });
-    await medicineUser.save({ transaction: t });
-
-    // all or nothing. both above must be successfully saved, else nothing.
-    await t.commit();
-
-    res.json({ status: "ok", msg: "Medicine updated successfully" });
-  } catch (error) {
-    await t.rollback(); // Rollback the transaction if any error occurs
-    console.error(error.message);
-    res.status(400).json({ status: "error", msg: "Error updating medicine" });
-  }
-};
-
-*/

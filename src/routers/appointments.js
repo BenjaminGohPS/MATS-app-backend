@@ -8,7 +8,7 @@ const {
   updateAppointment,
 } = require("../controllers/appointments");
 
-const { auth, authAdmin } = require("../middleware/auth");
+const { auth } = require("../middleware/auth");
 
 // appointments
 router.get("/appts", auth, getAllAppointments);
