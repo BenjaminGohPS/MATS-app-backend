@@ -2,10 +2,7 @@
 
 # MATS - Medicine, Appointment Tracking Solution
 
-
-MATS is a personal medicine and appointment tracker designed to help users manage their healthcare routines. With Singapore's aging population in mind, MATS allows users to easily track their medications, upcoming medical appointments, and ensure they never miss a dose or an appointment. The app enables users to log medications, track their quantities and expiration dates, and even send appointment details to family members via platforms like WhatsApp.
-
-
+MATS is a personal medicine and appointment tracker designed to help users manage their healthcare routines. With Singapore's aging population in mind, MATS allows users to easily track their medications, upcoming medical appointments, and ensure they never miss a dose or an appointment. The app enables users to record down their upcoming doctor visit, with info such as the date, time, location, and type. The app also allows users to log medications, track their quantities and expiration dates.
 
 ## MATS – Backend (Medicine, Appointment Tracking Solution)
 
